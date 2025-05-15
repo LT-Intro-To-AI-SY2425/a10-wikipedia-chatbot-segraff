@@ -2,7 +2,7 @@ import re, string, calendar
 from wikipedia import WikipediaPage
 import wikipedia
 from bs4 import BeautifulSoup
-from nltk import word_tokenize, pos_tag, ne_chunk
+from nltk import word_tokenize, pos_tag, ne_chunkpip 
 from nltk.tree import Tree
 from match import match
 from typing import List, Callable, Tuple, Any, Match
@@ -14,7 +14,7 @@ def get_page_html(title: str) -> str:
     Args:
         title - title of the page
 
-    Returns:
+    Returns:nlt
         html of the page
     """
     results = wikipedia.search(title)
@@ -110,6 +110,30 @@ def get_birth_date(name: str) -> str:
     match = get_match(infobox_text, pattern, error_text)
 
     return match.group("birth")
+
+def get_birth_date(entity):
+    try:
+        page = wikipedia.page(entity)
+        match = re.search(r'Born\s*(.*?)\n', page.content, re.IGNORECASE)
+        return match.group(1) if match else "Birth date not found."
+    except:
+        return "Sorry, I couldn't retrieve the birth date."
+    
+def birth_date(matches):
+    entity = matches[0]
+    return get_birth_date(entity)
+
+def get_polar_radius(planet):
+    try:
+        page = wikipedia.page(planet)
+        match = re.search(r'Polar radius\s*=\s*([\d,]+)\s*km', page.content, re.IGNORECASE)
+        return match.group(1) + " km" if match else "Polar radius not found."
+    except:
+        return "Sorry, I couldn't retrieve the polar radius."
+
+def polar_radius(matches):
+    planet = matches[0]
+    return get_polar_radius(planet)
 
 
 # below are a set of actions. Each takes a list argument and returns a list of answers
