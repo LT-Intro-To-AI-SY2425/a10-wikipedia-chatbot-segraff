@@ -2,7 +2,7 @@ import re, string, calendar
 from wikipedia import WikipediaPage
 import wikipedia
 from bs4 import BeautifulSoup
-from nltk import word_tokenize, pos_tag, ne_chunkpip 
+from nltk import word_tokenize, pos_tag, ne_chunk
 from nltk.tree import Tree
 from match import match
 from typing import List, Callable, Tuple, Any, Match
@@ -14,7 +14,7 @@ def get_page_html(title: str) -> str:
     Args:
         title - title of the page
 
-    Returns:nlt
+    Returns:
         html of the page
     """
     results = wikipedia.search(title)
@@ -111,29 +111,57 @@ def get_birth_date(name: str) -> str:
 
     return match.group("birth")
 
-def get_birth_date(entity):
-    try:
-        page = wikipedia.page(entity)
-        match = re.search(r'Born\s*(.*?)\n', page.content, re.IGNORECASE)
-        return match.group(1) if match else "Birth date not found."
-    except:
-        return "Sorry, I couldn't retrieve the birth date."
-    
-def birth_date(matches):
-    entity = matches[0]
-    return get_birth_date(entity)
+def get_gdp_ppp(entity_name: str) -> str:
+    """Gets GDP (PPP) of a country or entity from Wikipedia.
 
-def get_polar_radius(planet):
-    try:
-        page = wikipedia.page(planet)
-        match = re.search(r'Polar radius\s*=\s*([\d,]+)\s*km', page.content, re.IGNORECASE)
-        return match.group(1) + " km" if match else "Polar radius not found."
-    except:
-        return "Sorry, I couldn't retrieve the polar radius."
+    Args:
+        entity_name - name of the country/entity
 
-def polar_radius(matches):
-    planet = matches[0]
-    return get_polar_radius(planet)
+    Returns:
+        GDP (PPP) of the given country/entity
+    """
+    infobox_text = clean_text(get_first_infobox_text(get_page_html(entity_name)))
+
+    # Enhanced regex pattern to accurately capture GDP (PPP) values
+    pattern = r"(?:GDP \(PPP\).*?\$ ?)(?P<gdp>[\d,.]+) (?:billion|trillion)"
+    error_text = ("Page infobox has no GDP (PPP) information")
+    match = get_match(infobox_text, pattern, error_text)
+    return f"${match.group('gdp')} billion USD (PPP) (approx)"
+        
+def get_legislature(country_name: str) -> str:
+    """Gets the legislature of a given country from Wikipedia.
+
+    Args:
+        country_name - name of the country
+
+    Returns:
+        Legislature of the given country
+    """
+    infobox_text = clean_text(get_first_infobox_text(get_page_html(country_name)))
+
+    # Regex pattern to find "Legislature" and capture the following text (the legislature name)
+    pattern = r"Legislature(?:\s*|)(?P<legislature>[A-Za-z0-9\s'(),\-]+?)(?=\s*(\[|Upper house|Lower house|Government|Executive|Independence|Area|Formation|$))"
+    error_text = "Page infobox has no legislature information"
+    match = get_match(infobox_text, pattern, error_text)
+    return match.group("legislature")
+
+def get_capital(country_name: str) -> str:
+    """Gets the capital of a given country from Wikipedia and prints the extracted infobox for debugging.
+
+    Args:
+        country_name - name of the country
+
+    Returns:
+        Capital city of the given country
+    """
+    infobox_text = clean_text(get_first_infobox_text(get_page_html(country_name)))
+
+    # Regex pattern to extract the capital city
+    pattern = r"Capital(?:\s*(?:and largest city)?)?\s*[:\-]?\s*(?P<capital>[A-Za-z\s'(),\-\.]+)(?=\s*[0-9]|\s*\[|$)"
+    error_text = "Page infobox has no capital information"
+    match = get_match(infobox_text, pattern, error_text)
+    return match.group("capital")
+
 
 
 # below are a set of actions. Each takes a list argument and returns a list of answers
@@ -165,6 +193,44 @@ def polar_radius(matches: List[str]) -> List[str]:
     return [get_polar_radius(matches[0])]
 
 
+def gdp_ppp(matches: List[str]) -> List[str]:
+    """Returns GDP (PPP) total of given entity
+
+    Args:
+        matches - match from pattern for entity to find GDP (PPP) total of
+
+    Returns:
+        GDP (PPP) total of entity
+    """
+    return [get_gdp_ppp(matches[0])]
+
+
+def legislature(matches: List[str]) -> List[str]:
+    """Returns the legislature of a given country.
+
+    Args:
+        matches - match from pattern for country to find legislature of
+
+    Returns:
+        Legislature of the country
+    """
+    return [get_legislature(" ".join(matches))]
+
+def capital(matches: List[str]) -> List[str]:
+    """Returns the capital of the given country.
+
+    Args:
+        matches - match from pattern for country to find capital of
+
+    Returns:
+        Capital city of the country
+    """
+    return [get_capital(" ".join(matches))]
+
+
+
+
+
 # dummy argument is ignored and doesn't matter
 def bye_action(dummy: List[str]) -> None:
     raise KeyboardInterrupt
@@ -180,6 +246,11 @@ Action = Callable[[List[str]], List[Any]]
 pa_list: List[Tuple[Pattern, Action]] = [
     ("when was % born".split(), birth_date),
     ("what is the polar radius of %".split(), polar_radius),
+    ("what is the gdp ppp of %".split(), gdp_ppp),
+    ("what is the legislature of %".split(), legislature),
+    ("what is the capital of %".split(), capital),
+    
+
     (["bye"], bye_action),
 ]
 
@@ -208,7 +279,7 @@ def search_pa_list(src: List[str]) -> List[str]:
 def query_loop() -> None:
     """The simple query loop. The try/except structure is to catch Ctrl-C or Ctrl-D
     characters and exit gracefully"""
-    print("Welcome to the movie database!\n")
+    print("Welcome to the Wikipedia database!\n")
     while True:
         try:
             print()
