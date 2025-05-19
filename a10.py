@@ -111,56 +111,47 @@ def get_birth_date(name: str) -> str:
 
     return match.group("birth")
 
-def get_gdp_ppp(entity_name: str) -> str:
-    """Gets GDP (PPP) of a country or entity from Wikipedia.
+def get_scientific_name(entity_name: str) -> str:
+    """Gets the scientific name of an animal from its Wikipedia infobox.
 
     Args:
-        entity_name - name of the country/entity
+        entity_name: Name of the animal.
 
     Returns:
-        GDP (PPP) of the given country/entity
+        Scientific name of the animal.
     """
     infobox_text = clean_text(get_first_infobox_text(get_page_html(entity_name)))
 
-    # Enhanced regex pattern to accurately capture GDP (PPP) values
-    pattern = r"(?:GDP \(PPP\).*?\$ ?)(?P<gdp>[\d,.]+) (?:billion|trillion)"
-    error_text = ("Page infobox has no GDP (PPP) information")
+    # Regex pattern to match scientific name in binomial nomenclature
+    pattern = r"Binomial name(?:[^:\n]*):\s*(?P<scientific_name>[\w\s]+)"
+    error_text = "Page infobox has no scientific name information"
     match = get_match(infobox_text, pattern, error_text)
-    return f"${match.group('gdp')} billion USD (PPP) (approx)"
+
+    scientific_name = match.group('scientific_name').strip()
+    return f"Scientific name: {scientific_name}"
+
+def get_conservation_status(entity_name: str) -> str:
+    """Gets the conservation status of an animal from its Wikipedia infobox.
+
+    Args:
+        entity_name: Name of the animal.
+
+    Returns:
+        Conservation status of the animal (e.g., "Endangered", "Least Concern").
+    """
+    infobox_text = clean_text(get_first_infobox_text(get_page_html(entity_name)))
+
+    # Regex pattern to match conservation status, often found under "Conservation status"
+    pattern = r"Conservation status(?:[^:\n]*):\s*(?P<status>.+?)(?:\n|<)"
+    error_text = "Page infobox has no conservation status information"
+    match = get_match(infobox_text, pattern, error_text)
+
+    status = match.group('status').strip()
+    return f"Conservation status: {status}"
+
         
-def get_legislature(country_name: str) -> str:
-    """Gets the legislature of a given country from Wikipedia.
 
-    Args:
-        country_name - name of the country
 
-    Returns:
-        Legislature of the given country
-    """
-    infobox_text = clean_text(get_first_infobox_text(get_page_html(country_name)))
-
-    # Regex pattern to find "Legislature" and capture the following text (the legislature name)
-    pattern = r"Legislature(?:\s*|)(?P<legislature>[A-Za-z0-9\s'(),\-]+?)(?=\s*(\[|Upper house|Lower house|Government|Executive|Independence|Area|Formation|$))"
-    error_text = "Page infobox has no legislature information"
-    match = get_match(infobox_text, pattern, error_text)
-    return match.group("legislature")
-
-def get_capital(country_name: str) -> str:
-    """Gets the capital of a given country from Wikipedia and prints the extracted infobox for debugging.
-
-    Args:
-        country_name - name of the country
-
-    Returns:
-        Capital city of the given country
-    """
-    infobox_text = clean_text(get_first_infobox_text(get_page_html(country_name)))
-
-    # Regex pattern to extract the capital city
-    pattern = r"Capital(?:\s*(?:and largest city)?)?\s*[:\-]?\s*(?P<capital>[A-Za-z\s'(),\-\.]+)(?=\s*[0-9]|\s*\[|$)"
-    error_text = "Page infobox has no capital information"
-    match = get_match(infobox_text, pattern, error_text)
-    return match.group("capital")
 
 
 
@@ -192,40 +183,63 @@ def polar_radius(matches: List[str]) -> List[str]:
     """
     return [get_polar_radius(matches[0])]
 
-
-def gdp_ppp(matches: List[str]) -> List[str]:
-    """Returns GDP (PPP) total of given entity
-
-    Args:
-        matches - match from pattern for entity to find GDP (PPP) total of
-
-    Returns:
-        GDP (PPP) total of entity
-    """
-    return [get_gdp_ppp(matches[0])]
-
-
-def legislature(matches: List[str]) -> List[str]:
-    """Returns the legislature of a given country.
+def sub_family(entity_name: str) -> str:
+    """Gets the subfamily of an animal in matches
 
     Args:
-        matches - match from pattern for country to find legislature of
+       matches - match from pattern of animal to find subfamily of
 
     Returns:
-        Legislature of the country
+        Subfamily of the animal 
     """
-    return [get_legislature(" ".join(matches))]
+    infobox_text = clean_text(get_first_infobox_text(get_page_html(entity_name)))
 
-def capital(matches: List[str]) -> List[str]:
-    """Returns the capital of the given country.
+    # Regex pattern to match habitat information
+    pattern = r"(?)"
+    error_text = "Page infobox has no habitat information"
+    match = get_match(infobox_text, pattern, error_text)
+    print(match)
+    subfamily = match.group('subfamily').strip()
+    return [get_sub_family(" ".join(match))]
+
+
+
+
+
+
+def scientific_name(matches: List[str]) -> List[str]:
+    """Returns the scientific name of a given animal.
 
     Args:
-        matches - match from pattern for country to find capital of
+        matches - match from pattern for animal to find scientific name 
 
     Returns:
-        Capital city of the country
+        Scientific name of the animal
     """
-    return [get_capital(" ".join(matches))]
+    return [get_scientific_name(" ".join(matches))]
+
+def conservation_status(matches: List[str]) -> List[str]:
+    """Returns the conservation status of a given animal.
+
+    Args:
+        matches - match from pattern for animal to find given conservation status
+
+    Returns:
+        Conservation status of animal
+    """
+    return [get_conservation_status(" ".join(matches))]
+
+def  get_sub_family(matches: List[str]) -> List[str]:
+    """Returns the subfamily of a given animal.
+
+    Args:
+        matches - match from pattern for animal to find subfamily
+
+    Returns:
+        Subfamily of animal
+    """
+    return [sub_family(" ".join(matches))]
+
 
 
 
@@ -246,9 +260,9 @@ Action = Callable[[List[str]], List[Any]]
 pa_list: List[Tuple[Pattern, Action]] = [
     ("when was % born".split(), birth_date),
     ("what is the polar radius of %".split(), polar_radius),
-    ("what is the gdp ppp of %".split(), gdp_ppp),
-    ("what is the legislature of %".split(), legislature),
-    ("what is the capital of %".split(), capital),
+    ("what is the scientific name of %".split(), scientific_name),
+    ("what is the conservation status of %".split(), conservation_status),
+    ("what is the subfamily of %".split(), get_sub_family),
     
 
     (["bye"], bye_action),
