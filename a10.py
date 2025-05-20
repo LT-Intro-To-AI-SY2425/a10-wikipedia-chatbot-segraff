@@ -111,6 +111,10 @@ def get_birth_date(name: str) -> str:
 
     return match.group("birth")
 
+def get_everything(thing: str) -> str:
+    infobox_text = clean_text(get_first_infobox_text(get_page_html(thing)))
+    return infobox_text
+
 def get_scientific_name(entity_name: str) -> str:
     """Gets the scientific name of an animal from its Wikipedia infobox.
 
@@ -123,14 +127,14 @@ def get_scientific_name(entity_name: str) -> str:
     infobox_text = clean_text(get_first_infobox_text(get_page_html(entity_name)))
 
     # Regex pattern to match scientific name in binomial nomenclature
-    pattern = r"Binomial name(?:[^:\n]*):\s*(?P<scientific_name>[\w\s]+)"
+    pattern = r"Family:\s?(?P<family>\w*)"
     error_text = "Page infobox has no scientific name information"
     match = get_match(infobox_text, pattern, error_text)
 
-    scientific_name = match.group('scientific_name').strip()
-    return f"Scientific name: {scientific_name}"
+    family = match.group('family').strip()
+    return f"Scientific name: {family}"
 
-def get_conservation_status(entity_name: str) -> str:
+def get_domain(entity_name: str) -> str:
     """Gets the conservation status of an animal from its Wikipedia infobox.
 
     Args:
@@ -142,12 +146,12 @@ def get_conservation_status(entity_name: str) -> str:
     infobox_text = clean_text(get_first_infobox_text(get_page_html(entity_name)))
 
     # Regex pattern to match conservation status, often found under "Conservation status"
-    pattern = r"Conservation status(?:[^:\n]*):\s*(?P<status>.+?)(?:\n|<)"
-    error_text = "Page infobox has no conservation status information"
+    pattern = r"Domain:\s?(?P<domain>\w*)"
+    error_text = "Page infobox has no domain information"
     match = get_match(infobox_text, pattern, error_text)
 
-    status = match.group('status').strip()
-    return f"Conservation status: {status}"
+    domain = match.group('domain').strip()
+    return f"Domain: {domain}"
 
         
 
@@ -183,29 +187,8 @@ def polar_radius(matches: List[str]) -> List[str]:
     """
     return [get_polar_radius(matches[0])]
 
-def sub_family(entity_name: str) -> str:
-    """Gets the subfamily of an animal in matches
-
-    Args:
-       matches - match from pattern of animal to find subfamily of
-
-    Returns:
-        Subfamily of the animal 
-    """
-    infobox_text = clean_text(get_first_infobox_text(get_page_html(entity_name)))
-
-    # Regex pattern to match habitat information
-    pattern = r"(?)"
-    error_text = "Page infobox has no habitat information"
-    match = get_match(infobox_text, pattern, error_text)
-    print(match)
-    subfamily = match.group('subfamily').strip()
-    return [get_sub_family(" ".join(match))]
-
-
-
-
-
+def everything(matches: List[str]) -> List[str]:
+    return [get_everything(matches[0])]
 
 def scientific_name(matches: List[str]) -> List[str]:
     """Returns the scientific name of a given animal.
@@ -218,7 +201,7 @@ def scientific_name(matches: List[str]) -> List[str]:
     """
     return [get_scientific_name(" ".join(matches))]
 
-def conservation_status(matches: List[str]) -> List[str]:
+def domain(matches: List[str]) -> List[str]:
     """Returns the conservation status of a given animal.
 
     Args:
@@ -227,18 +210,7 @@ def conservation_status(matches: List[str]) -> List[str]:
     Returns:
         Conservation status of animal
     """
-    return [get_conservation_status(" ".join(matches))]
-
-def  get_sub_family(matches: List[str]) -> List[str]:
-    """Returns the subfamily of a given animal.
-
-    Args:
-        matches - match from pattern for animal to find subfamily
-
-    Returns:
-        Subfamily of animal
-    """
-    return [sub_family(" ".join(matches))]
+    return [get_domain(" ".join(matches))]
 
 
 
@@ -261,9 +233,8 @@ pa_list: List[Tuple[Pattern, Action]] = [
     ("when was % born".split(), birth_date),
     ("what is the polar radius of %".split(), polar_radius),
     ("what is the scientific name of %".split(), scientific_name),
-    ("what is the conservation status of %".split(), conservation_status),
-    ("what is the subfamily of %".split(), get_sub_family),
-    
+    ("what is the domain of %".split(), domain),
+    ("tell me everything about %".split(), everything),
 
     (["bye"], bye_action),
 ]
@@ -294,6 +265,7 @@ def query_loop() -> None:
     """The simple query loop. The try/except structure is to catch Ctrl-C or Ctrl-D
     characters and exit gracefully"""
     print("Welcome to the Wikipedia database!\n")
+
     while True:
         try:
             print()
