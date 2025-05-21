@@ -135,7 +135,7 @@ def get_scientific_name(entity_name: str) -> str:
     return f"Scientific name: {family}"
 
 def get_domain(entity_name: str) -> str:
-    """Gets the conservation status of an animal from its Wikipedia infobox.
+    """Gets the animal domain of an animal from its Wikipedia infobox.
 
     Args:
         entity_name: Name of the animal.
@@ -152,6 +152,25 @@ def get_domain(entity_name: str) -> str:
 
     domain = match.group('domain').strip()
     return f"Domain: {domain}"
+
+def get_atomic_number(entity_name: str) -> str:
+    """Gets the atomic number of an element from its Wikipedia infobox.
+
+    Args:
+        entity_name: Atomic number of an element
+
+    Returns:
+        Atomic number
+    """
+    infobox_text = clean_text(get_first_infobox_text(get_page_html(entity_name)))
+
+    # Regex pattern to match conservation status, often found under "Conservation status"
+    pattern = r"Atomic number\s?[\D]*(?P<number>\d+)"
+    error_text = "Page infobox has no domain information"
+    match = get_match(infobox_text, pattern, error_text)
+
+    atomic_number = match.group('number').strip()
+    return f"Atomic number: {atomic_number}"
 
         
 
@@ -212,6 +231,17 @@ def domain(matches: List[str]) -> List[str]:
     """
     return [get_domain(" ".join(matches))]
 
+def atomic_number(matches: List[str]) -> List[str]:
+    """Returns the conservation status of a given animal.
+
+    Args:
+        matches - match from pattern for animal to find given conservation status
+
+    Returns:
+        Conservation status of animal
+    """
+    return [get_atomic_number(" ".join(matches))]
+
 
 
 
@@ -233,8 +263,9 @@ pa_list: List[Tuple[Pattern, Action]] = [
     ("when was % born".split(), birth_date),
     ("what is the polar radius of %".split(), polar_radius),
     ("what is the scientific name of %".split(), scientific_name),
-    ("what is the domain of %".split(), domain),
+    ("what is the animal domain of %".split(), domain),
     ("tell me everything about %".split(), everything),
+    ("what is the atomic number of %".split(), atomic_number),
 
     (["bye"], bye_action),
 ]
