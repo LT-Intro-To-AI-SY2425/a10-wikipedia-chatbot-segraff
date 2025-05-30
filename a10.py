@@ -76,25 +76,25 @@ def get_match(
     return match
 
 
-def get_polar_radius(planet_name: str) -> str:
-    """Gets the radius of the given planet
+def get_casualties(war_name: str) -> str:
+    """Gets the casualties from a given war
 
     Args:
-        planet_name - name of the planet to get radius of
+        war_name - name of the war to get radius of
 
     Returns:
-        radius of the given planet
+        casualties from the given war 
     """
-    infobox_text = clean_text(get_first_infobox_text(get_page_html(planet_name)))
-    pattern = r"(?:Polar radius.*?)(?: ?[\d]+ )?(?P<radius>[\d,.]+)(?:.*?)km"
-    error_text = "Page infobox has no polar radius information"
+    infobox_text = clean_text(get_first_infobox_text(get_page_html(war_name)))
+    pattern = r"(?:Casualties and losses.*?)(?: ?[\d]+ )?(?P<casualties>[\d,.]+)(?:.*?)deaths"
+    error_text = "Page infobox has no casualty information"
     match = get_match(infobox_text, pattern, error_text)
 
-    return match.group("radius")
+    return match.group("casualties")
 
 
 def get_birth_date(name: str) -> str:
-    """Gets birth date of the given person
+    """G\ets birth date of the given person
 
     Args:
         name - name of the person
@@ -195,16 +195,16 @@ def birth_date(matches: List[str]) -> List[str]:
     return [get_birth_date(" ".join(matches))]
 
 
-def polar_radius(matches: List[str]) -> List[str]:
-    """Returns polar radius of planet in matches
+def casualties(matches: List[str]) -> List[str]:
+    """Returns casualties of war in matches
 
     Args:
-        matches - match from pattern of planet to find polar radius of
+        matches - match from pattern of war to find casualties of
 
     Returns:
-        polar radius of planet
+        casualties of war
     """
-    return [get_polar_radius(matches[0])]
+    return [get_casualties(matches[0])]
 
 def everything(matches: List[str]) -> List[str]:
     return [get_everything(matches[0])]
@@ -261,7 +261,7 @@ Action = Callable[[List[str]], List[Any]]
 # here, after all of the function definitions
 pa_list: List[Tuple[Pattern, Action]] = [
     ("when was % born".split(), birth_date),
-    ("what is the polar radius of %".split(), polar_radius),
+    ("How many casualties in the %".split(), casualties),
     ("what is the scientific name of %".split(), scientific_name),
     ("what is the animal domain of %".split(), domain),
     ("tell me everything about %".split(), everything),
