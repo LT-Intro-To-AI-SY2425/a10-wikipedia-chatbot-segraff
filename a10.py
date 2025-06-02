@@ -76,21 +76,21 @@ def get_match(
     return match
 
 
-def get_casualties(war_name: str) -> str:
-    """Gets the casualties from a given war
+def get_war_result(war_name: str) -> str:
+    """Gets the result from a given war
 
     Args:
-        war_name - name of the war to get radius of
+        war_name - name of the war to get result of
 
     Returns:
-        casualties from the given war 
+        result of the given war 
     """
     infobox_text = clean_text(get_first_infobox_text(get_page_html(war_name)))
-    pattern = r"(?:Casualties and losses.*?)(?: ?[\d]+ )?(?P<casualties>[\d,.]+)(?:.*?)deaths"
-    error_text = "Page infobox has no casualty information"
+    pattern = r"(Result\s*(?P<result>[\w\s]*)Territorial)"
+    error_text = "Page infobox has no result information"
     match = get_match(infobox_text, pattern, error_text)
 
-    return match.group("casualties")
+    return match.group("result")
 
 
 def get_birth_date(name: str) -> str:
@@ -195,16 +195,16 @@ def birth_date(matches: List[str]) -> List[str]:
     return [get_birth_date(" ".join(matches))]
 
 
-def casualties(matches: List[str]) -> List[str]:
-    """Returns casualties of war in matches
+def war_result(matches: List[str]) -> List[str]:
+    """Returns war result of war in matches
 
     Args:
-        matches - match from pattern of war to find casualties of
+        matches - match from pattern of war to find result of
 
     Returns:
-        casualties of war
+        result of war
     """
-    return [get_casualties(matches[0])]
+    return [get_war_result(matches[0])]
 
 def everything(matches: List[str]) -> List[str]:
     return [get_everything(matches[0])]
@@ -261,7 +261,7 @@ Action = Callable[[List[str]], List[Any]]
 # here, after all of the function definitions
 pa_list: List[Tuple[Pattern, Action]] = [
     ("when was % born".split(), birth_date),
-    ("How many casualties in the %".split(), casualties),
+    ("what was the result of the %".split(), war_result),
     ("what is the scientific name of %".split(), scientific_name),
     ("what is the animal domain of %".split(), domain),
     ("tell me everything about %".split(), everything),
