@@ -116,24 +116,23 @@ def get_everything(thing: str) -> str:
     infobox_text = clean_text(get_first_infobox_text(get_page_html(thing)))
     return infobox_text
 
-def get_scientific_name(entity_name: str) -> str:
-    """Gets the scientific name of an animal from its Wikipedia infobox.
+def get_president_birthday(entity_name: str) -> str:
+    """Gets the presidents birth day of a president from its Wikipedia infobox.
 
     Args:
-        entity_name: Name of the animal.
-
+        presdient name
     Returns:
-        Scientific name of the animal.
+        birthday of president
     """
     infobox_text = clean_text(get_first_infobox_text(get_page_html(entity_name)))
 
     # Regex pattern to match scientific name in binomial nomenclature
-    pattern = r"Family:\s?(?P<family>\w*)"
-    error_text = "Page infobox has no scientific name information"
+    pattern = r"(?P<birthday>\d{4}-\d{2}-\d{2})"
+    error_text = "Page infobox has no president birthday information"
     match = get_match(infobox_text, pattern, error_text)
 
-    family = match.group('family').strip()
-    return f"Scientific name: {family}"
+    birthday = match.group('birthday').strip()
+    return f"President's birthday {birthday}"
 
 def get_domain(entity_name: str) -> str:
     """Gets the animal domain of an animal from its Wikipedia infobox.
@@ -210,7 +209,7 @@ def war_result(matches: List[str]) -> List[str]:
 def everything(matches: List[str]) -> List[str]:
     return [get_everything(matches[0])]
 
-def scientific_name(matches: List[str]) -> List[str]:
+def president_name(matches: List[str]) -> List[str]:
     """Returns the scientific name of a given animal.
 
     Args:
@@ -219,7 +218,7 @@ def scientific_name(matches: List[str]) -> List[str]:
     Returns:
         Scientific name of the animal
     """
-    return [get_scientific_name(" ".join(matches))]
+    return [get_president_birthday(" ".join(matches))]
 
 def domain(matches: List[str]) -> List[str]:
     """Returns the conservation status of a given animal.
@@ -263,7 +262,7 @@ Action = Callable[[List[str]], List[Any]]
 pa_list: List[Tuple[Pattern, Action]] = [
     ("which number president was %".split(), president),
     ("what was the result of the %".split(), war_result),
-    ("what is the scientific name of %".split(), scientific_name),
+    ("when was the birthday of %".split(), president_name),
     ("what is the animal domain of %".split(), domain),
     ("tell me everything about %".split(), everything),
     ("what is the atomic number of %".split(), atomic_number),
