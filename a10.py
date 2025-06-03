@@ -93,23 +93,24 @@ def get_war_result(war_name: str) -> str:
     return match.group("result")
 
 
-def get_birth_date(name: str) -> str:
-    """G\ets birth date of the given person
+def get_president(name: str) -> str:
+    """Gets the president of the number given 
 
     Args:
-        name - name of the person
+        number of the president 
 
     Returns:
-        birth date of the given person
+        president name 
     """
     infobox_text = clean_text(get_first_infobox_text(get_page_html(name)))
-    pattern = r"(?:Born\D*)(?P<birth>\d{4}-\d{2}-\d{2})"
+    pattern = r"\d{4}(?P<order>\d*\w{2})"
+
     error_text = (
-        "Page infobox has no birth information (at least none in xxxx-xx-xx format)"
+        "Page infobox has no president order information (at least none in xxxx-xx-xx format)"
     )
     match = get_match(infobox_text, pattern, error_text)
 
-    return match.group("birth")
+    return match.group("order")
 
 def get_everything(thing: str) -> str:
     infobox_text = clean_text(get_first_infobox_text(get_page_html(thing)))
@@ -183,16 +184,16 @@ def get_atomic_number(entity_name: str) -> str:
 # list of the answer(s) and not just the answer itself.
 
 
-def birth_date(matches: List[str]) -> List[str]:
-    """Returns birth date of named person in matches
+def president(matches: List[str]) -> List[str]:
+    """Returns president of the number in matches
 
     Args:
-        matches - match from pattern of person's name to find birth date of
+        matches - match from pattern of number given to find president
 
     Returns:
-        birth date of named person
+        president name
     """
-    return [get_birth_date(" ".join(matches))]
+    return [get_president(" ".join(matches))]
 
 
 def war_result(matches: List[str]) -> List[str]:
@@ -260,7 +261,7 @@ Action = Callable[[List[str]], List[Any]]
 # The pattern-action list for the natural language query system. It must be declared
 # here, after all of the function definitions
 pa_list: List[Tuple[Pattern, Action]] = [
-    ("when was % born".split(), birth_date),
+    ("which number president was %".split(), president),
     ("what was the result of the %".split(), war_result),
     ("what is the scientific name of %".split(), scientific_name),
     ("what is the animal domain of %".split(), domain),
