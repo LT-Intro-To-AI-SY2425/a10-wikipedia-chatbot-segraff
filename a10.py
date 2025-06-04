@@ -134,24 +134,24 @@ def get_president_birthday(entity_name: str) -> str:
     birthday = match.group('birthday').strip()
     return f"President's birthday {birthday}"
 
-def get_domain(entity_name: str) -> str:
-    """Gets the animal domain of an animal from its Wikipedia infobox.
+def get_founding(entity_name: str) -> str:
+    """Gets the year a city was founded.
 
     Args:
-        entity_name: Name of the animal.
+        entity_name: Name of the city.
 
     Returns:
-        Conservation status of the animal (e.g., "Endangered", "Least Concern").
+        year the city was founded
     """
     infobox_text = clean_text(get_first_infobox_text(get_page_html(entity_name)))
 
     # Regex pattern to match conservation status, often found under "Conservation status"
-    pattern = r"Domain:\s?(?P<domain>\w*)"
-    error_text = "Page infobox has no domain information"
+    pattern = r"Settled(c. )?(?P<found>\d{4})"
+    error_text = "Page infobox has no founding information"
     match = get_match(infobox_text, pattern, error_text)
 
-    domain = match.group('domain').strip()
-    return f"Domain: {domain}"
+    found = match.group('found').strip()
+    return f"Founded: {found}"
 
 def get_atomic_number(entity_name: str) -> str:
     """Gets the atomic number of an element from its Wikipedia infobox.
@@ -216,20 +216,19 @@ def president_name(matches: List[str]) -> List[str]:
         matches - match from pattern for animal to find scientific name 
 
     Returns:
-        Scientific name of the animal
+        Birthday of the president
     """
     return [get_president_birthday(" ".join(matches))]
 
-def domain(matches: List[str]) -> List[str]:
-    """Returns the conservation status of a given animal.
-
+def founding(matches: List[str]) -> List[str]:
+    """Returns the year a given city was founded
     Args:
         matches - match from pattern for animal to find given conservation status
 
     Returns:
         Conservation status of animal
     """
-    return [get_domain(" ".join(matches))]
+    return [get_founding(" ".join(matches))]
 
 def atomic_number(matches: List[str]) -> List[str]:
     """Returns the conservation status of a given animal.
@@ -263,7 +262,7 @@ pa_list: List[Tuple[Pattern, Action]] = [
     ("which number president was %".split(), president),
     ("what was the result of the %".split(), war_result),
     ("when was the birthday of %".split(), president_name),
-    ("what is the animal domain of %".split(), domain),
+    ("when was the founding of %".split(), founding),
     ("tell me everything about %".split(), everything),
     ("what is the atomic number of %".split(), atomic_number),
 
