@@ -153,24 +153,24 @@ def get_founding(entity_name: str) -> str:
     found = match.group('found').strip()
     return f"Founded: {found}"
 
-def get_atomic_number(entity_name: str) -> str:
-    """Gets the atomic number of an element from its Wikipedia infobox.
+def get_happen(entity_name: str) -> str:
+    """Gets the year a historical event happened from its Wikipedia infobox.
 
     Args:
-        entity_name: Atomic number of an element
+        entity_name: historical event 
 
-    Returns:
-        Atomic number
+    Returns: year of event 
+        
     """
     infobox_text = clean_text(get_first_infobox_text(get_page_html(entity_name)))
 
     # Regex pattern to match conservation status, often found under "Conservation status"
-    pattern = r"Atomic number\s?[\D]*(?P<number>\d+)"
+    pattern = r"Location\s?(?P<happen>\w+)"
     error_text = "Page infobox has no domain information"
     match = get_match(infobox_text, pattern, error_text)
 
-    atomic_number = match.group('number').strip()
-    return f"Atomic number: {atomic_number}"
+    happen = match.group('date').strip()
+    return f"Date: {happen}"
 
         
 
@@ -230,7 +230,7 @@ def founding(matches: List[str]) -> List[str]:
     """
     return [get_founding(" ".join(matches))]
 
-def atomic_number(matches: List[str]) -> List[str]:
+def happen(matches: List[str]) -> List[str]:
     """Returns the conservation status of a given animal.
 
     Args:
@@ -239,7 +239,7 @@ def atomic_number(matches: List[str]) -> List[str]:
     Returns:
         Conservation status of animal
     """
-    return [get_atomic_number(" ".join(matches))]
+    return [get_happen(" ".join(matches))]
 
 
 
@@ -264,8 +264,7 @@ pa_list: List[Tuple[Pattern, Action]] = [
     ("when was the birthday of %".split(), president_name),
     ("when was the founding of %".split(), founding),
     ("tell me everything about %".split(), everything),
-    ("what is the atomic number of %".split(), atomic_number),
-
+    ("what was the location of the battle of %".split(), happen),
     (["bye"], bye_action),
 ]
 
