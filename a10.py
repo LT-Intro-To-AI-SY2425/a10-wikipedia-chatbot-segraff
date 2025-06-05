@@ -146,7 +146,7 @@ def get_founding(entity_name: str) -> str:
     infobox_text = clean_text(get_first_infobox_text(get_page_html(entity_name)))
 
     # Regex pattern to match conservation status, often found under "Conservation status"
-    pattern = r"Settled(c. )?(?P<found>\d{4})"
+    pattern = r"((City\sstatus)|(Settled(c. )?))(?P<found>(\w+ \d+, )?\d{4})"
     error_text = "Page infobox has no founding information"
     match = get_match(infobox_text, pattern, error_text)
 
