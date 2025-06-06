@@ -169,9 +169,26 @@ def get_happen(entity_name: str) -> str:
     error_text = "Page infobox has no domain information"
     match = get_match(infobox_text, pattern, error_text)
 
-    happen = match.group('date').strip()
-    return f"Date: {happen}"
+    happen = match.group('happen').strip()
+    return f"Location: {happen}"
 
+def get_first_lady(entity_name: str) -> str:
+    """Gets the first lady of a president from its Wikipedia infobox.
+
+    Args:
+        presdient name
+    Returns:
+        first lady 
+    """
+    infobox_text = clean_text(get_first_infobox_text(get_page_html(entity_name)))
+
+    # Regex pattern to match scientific name in binomial nomenclature
+    pattern = r"Spouse[\n\s](?P<first_lady>\w* \w*)"
+    error_text = "Page infobox has no president birthday information"
+    match = get_match(infobox_text, pattern, error_text)
+
+    the_first_lady = match.group('first_lady').strip()
+    return f"First Lady: {the_first_lady}"
         
 
 
@@ -241,10 +258,16 @@ def happen(matches: List[str]) -> List[str]:
     """
     return [get_happen(" ".join(matches))]
 
+def first_lady(matches: List[str]) -> List[str]:
+    """Returns the scientific name of a given animal.
 
+    Args:
+        matches - match from pattern for animal to find scientific name 
 
-
-
+    Returns:
+        Birthday of the president
+    """
+    return [get_first_lady(" ".join(matches))]
 
 # dummy argument is ignored and doesn't matter
 def bye_action(dummy: List[str]) -> None:
@@ -264,7 +287,8 @@ pa_list: List[Tuple[Pattern, Action]] = [
     ("when was the birthday of %".split(), president_name),
     ("when was the founding of %".split(), founding),
     ("tell me everything about %".split(), everything),
-    ("what was the location of the battle of %".split(), happen),
+    ("what was the location of %".split(), happen),
+    ("who was the first lady of %".split(), first_lady )
     (["bye"], bye_action),
 ]
 
@@ -307,6 +331,8 @@ def query_loop() -> None:
             break
 
     print("\nSo long!\n")
+
+
 
 
 # uncomment the next line once you've implemented everything are ready to try it out
